@@ -1,0 +1,3 @@
+trafilatura
+google-generativeai
+python-dotenv
