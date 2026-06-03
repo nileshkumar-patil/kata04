@@ -21,8 +21,8 @@ def init_gemini():
         print("Error: GEMINI_API_KEY not found or not set in .env file.")
         sys.exit(1)
     genai.configure(api_key=api_key)
-    # Using gemini-1.5-flash as it is fast and efficient for text tasks
-    return genai.GenerativeModel('gemini-1.5-flash')
+    # Using gemini-pro as it is widely supported across all API versions
+    return genai.GenerativeModel('gemini-pro')
 
 def summarize_article(url):
     print(f"Fetching article from {url}...")
