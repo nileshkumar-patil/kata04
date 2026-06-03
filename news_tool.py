@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 try:
     import trafilatura
-    import google.generativeai as genai
+    from google import genai
 except ImportError:
     print("Required packages are missing. Please run: pip install -r requirements.txt")
     sys.exit(1)
@@ -20,9 +20,9 @@ def init_gemini():
     if not api_key or api_key == "your_gemini_api_key_here":
         print("Error: GEMINI_API_KEY not found or not set in .env file.")
         sys.exit(1)
-    genai.configure(api_key=api_key)
-    # Using gemini-pro as it is widely supported across all API versions
-    return genai.GenerativeModel('gemini-pro')
+    
+    # Initialize the new google.genai Client
+    return genai.Client(api_key=api_key)
 
 def summarize_article(url):
     print(f"Fetching article from {url}...")
@@ -43,7 +43,7 @@ def summarize_article(url):
     article_date = metadata.date if metadata and metadata.date else datetime.now().strftime("%d %B %Y")
     
     print("Article extracted. Generating summary using Gemini...")
-    model = init_gemini()
+    client = init_gemini()
     
     prompt = f"""
     You are an expert news summarizer. I will provide you with the text of a news article.
@@ -62,7 +62,10 @@ def summarize_article(url):
     """
     
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
         response_text = response.text.strip()
         
         # Remove markdown JSON blocks if the model still outputs them
@@ -111,7 +114,7 @@ def ask_question(question):
         sys.exit(1)
         
     print(f"Asking Gemini: '{question}' based on {len(data)} saved articles...")
-    model = init_gemini()
+    client = init_gemini()
     
     prompt = f"""
     You are a helpful assistant. I have a collection of news article summaries in JSON format.
@@ -125,7 +128,10 @@ def ask_question(question):
     """
     
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
         print("\nAnswer:")
         print(response.text.strip())
     except Exception as e:
@@ -133,11 +139,10 @@ def ask_question(question):
 
 def list_available_models():
     print("Listing available models for your API key...")
-    model = init_gemini() # just to configure API key
+    client = init_gemini() 
     try:
-        for m in genai.list_models():
-            if 'generateContent' in m.supported_generation_methods:
-                print(f"Model Name: {m.name}")
+        for m in client.models.list():
+            print(f"Model Name: {m.name}")
     except Exception as e:
         print(f"Error listing models: {e}")
 
