@@ -131,6 +131,16 @@ def ask_question(question):
     except Exception as e:
         print(f"Error during question answering: {e}")
 
+def list_available_models():
+    print("Listing available models for your API key...")
+    model = init_gemini() # just to configure API key
+    try:
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                print(f"Model Name: {m.name}")
+    except Exception as e:
+        print(f"Error listing models: {e}")
+
 def main():
     parser = argparse.ArgumentParser(description="LLM-based News Summarization Tool")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -143,12 +153,17 @@ def main():
     ask_parser = subparsers.add_parser("ask", help="Ask a question based on summarized articles")
     ask_parser.add_argument("question", type=str, help="The question to ask")
     
+    # List models command
+    list_parser = subparsers.add_parser("list-models", help="List available Gemini models for your API key")
+    
     args = parser.parse_args()
     
     if args.command == "summarize":
         summarize_article(args.url)
     elif args.command == "ask":
         ask_question(args.question)
+    elif args.command == "list-models":
+        list_available_models()
     else:
         parser.print_help()
 
